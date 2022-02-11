@@ -2,11 +2,10 @@ from tkinter import *
 from utils import *
 from constants import *
 
-from pages.main import *
-
 
 root = makeWindow()
 
+# Array of questions that are later indexed by the program
 questions = [
     "Do you have any sudden lumps?",
     "Do you have any small spots that may have become blisters/scabs?",
@@ -16,7 +15,8 @@ questions = [
     "Do you have problems swallowing?"
 ]
 
-def askQuestion(root, question):
+def askQuestion(root, question): # question parameter = the question index
+    # Destroy all compnenets of the older page, validation check because if its the first page they wont be valid
     if root.data["app"]["questionNumber"]:
         root.data["app"]["questionNumber"].destroy()
 
@@ -30,12 +30,12 @@ def askQuestion(root, question):
         root.data["app"]["nextButton"].destroy()
 
 
+    # User input choices
     choices = [ "Yes", "No" ]
-
-    x = IntVar();
+    userSelection = IntVar();
     y = 0
     for index in range(len(choices)):
-        radiobutton = Radiobutton(root, text=choices[index], variable=x, value=index, padx=25, compound = 'left', font=("Century Gothic", 20))
+        radiobutton = Radiobutton(root, text=choices[index], variable=userSelection, value=index, padx=25, compound = 'left', font=("Century Gothic", 20))
         radiobutton.place(relx=0.44, rely=0.60 + y, anchor='w')
         y += 0.06
 
@@ -54,7 +54,7 @@ def askQuestion(root, question):
 
 
     # Next Button
-    nextButton = Button(root, text="Submit", font=("Century Gothic", 14), width=10, borderwidth=1, relief="solid", command=lambda: next(root, choices[x.get()], question in range(0, len(questions)) and questions[question] or "unknown"))
+    nextButton = Button(root, text="Submit", font=("Century Gothic", 14), width=10, borderwidth=1, relief="solid", command=lambda: next(root, choices[userSelection.get()], question in range(0, len(questions)) and questions[question] or "unknown"))
     nextButton.place(relx=0.5, rely=0.81, anchor="center")
 
 
@@ -65,35 +65,51 @@ def askQuestion(root, question):
 
 
 
+# Function to load the next question/register the users answer
 def next(root, answer, question):
+    question = root.data["app"]["question"]
+
+    # If the user said they have a symptom
     if answer.lower() == "yes":
-        question = root.data["app"]["question"]
-        illness = None
-        if question == 0:
-            illness = "cancer";
-        elif question == 1:
-            illness = "chicken pox";
-        elif question == 2:
-            illness = "a cold";
-        elif question == 3:
-            illness = "COVID19";
-        elif question == 4:
-            illness = "the flu";
-        elif question == 5:
-            illness = "tonsillitis";
-
-
+        # Get the illness from the question index
+        illness = getIllness(question)
         messagebox.showerror(title="Attention!", message="You may have {}".format(illness));
+        
+        # Reset the question to the start
         root.data["app"]["question"] = 0;
+        # Load that question
         askQuestion(root, root.data["app"]["question"]);
     else:
-        if root.data["app"]["question"] >= len(questions) - 1:
+        # If the question is bigger or equal to the length of the questions - 1 (the end)
+        if question >= len(questions) - 1:
             messagebox.showinfo(title="Attention!", message="You have reached the end");
+            # Reset the question back to the start
             root.data["app"]["question"] = 0;
         else:
+            # Adds one onto the question
             root.data["app"]["question"] += 1
+        # Load the question
         askQuestion(root, question = root.data["app"]["question"])
 
+# Get the illness from the question index
+def getIllness(question):
+    illness = None
+    if question == 0:
+        illness = "cancer";
+    elif question == 1:
+        illness = "chicken pox";
+    elif question == 2:
+        illness = "a cold";
+    elif question == 3:
+        illness = "COVID19";
+    elif question == 4:
+        illness = "the flu";
+    elif question == 5:
+        illness = "tonsillitis";
+
+    return illness;
+
+# Start the program by asking the first question
 askQuestion(root, 0)
 
 root.mainloop()
